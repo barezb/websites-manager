@@ -1,0 +1,79 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  color     String?
+  websites  Website[]
+}
+
+model Client {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  websites      Website[]
+  payments      Payment[]
+  notes         String?
+  createdAt     DateTime  @default(now())
+}
+
+model Website {
+  id              String      @id @default(cuid())
+  name            String
+  url             String
+  technologies    String[]
+  hostProvider    String?
+  domainRenewal   DateTime?
+  hostRenewal     DateTime?
+  status          WebsiteStatus @default(UNKNOWN)
+  category        Category?   @relation(fields: [categoryId], references: [id])
+  categoryId      String?
+  client          Client?     @relation(fields: [clientId], references: [id])
+  clientId        String?
+  loginInfo       Json?
+  lastHealthCheck DateTime?
+  notes           String?
+  createdAt       DateTime    @default(now())
+}
+
+model Payment {
+  id            String       @id @default(cuid())
+  client        Client       @relation(fields: [clientId], references: [id])
+  clientId      String
+  amount        Float
+  date          DateTime
+  status        PaymentStatus @default(PENDING)
+  invoiceNumber String?
+  description   String?
+  createdAt     DateTime     @default(now())
+}
+
+enum WebsiteStatus {
+  RUNNING
+  PROBLEMATIC
+  STOPPED
+  UNKNOWN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
