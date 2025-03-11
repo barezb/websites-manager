@@ -1,19 +1,38 @@
-// File: src/app/api/websites/route.ts
-import { NextApiRequest, NextApiResponse } from 'next';
-import { loginUser } from '@/lib/auth';
+// File: src/app/api/login/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { loginUser, setSessionCookie } from '@/lib/auth'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const { username, password } = req.body;
+export async function POST(request: NextRequest) {
+  try {
+    const { username, password } = await request.json()
 
-    try {
-      const user = await loginUser(username, password, req, res);
-      res.status(200).json(user);
-    } catch (error) {
-      console.error('Login failed:', error);
-      res.status(401).json({ error: 'Invalid username or password' });
+    // Validate input
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Username and password are required' },
+        { status: 400 }
+      )
     }
-  } else {
-    res.status(405).end(); // Method Not Allowed
+
+    // Attempt login
+    const { user, token } = await loginUser(username, password)
+
+    // Create a response
+    const response = NextResponse.json({
+      id: user.id,
+      username: user.username
+    }, { status: 200 })
+
+    // Set session cookie
+    setSessionCookie(token, request, response)
+
+    return response
+
+  } catch (error) {
+    console.error('Login error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Login failed' },
+      { status: 401 }
+    )
   }
 }

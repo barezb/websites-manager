@@ -1,16 +1,28 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { logoutUser } from '@/lib/auth';
+// File: src/app/api/logout/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    try {
-      await logoutUser(req, res);
-      res.status(200).json({ message: 'Logout successful' });
-    } catch (error) {
-      console.error('Logout failed:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  } else {
-    res.status(405).end(); // Method Not Allowed
+export async function POST(request: NextRequest) {
+  try {
+    // Delete the user session cookie
+    (await
+      // Delete the user session cookie
+      cookies()).delete('user_session')
+
+    return NextResponse.json(
+      { message: 'Logged out successfully' },
+      {
+        status: 200,
+        headers: {
+          'Set-Cookie': `user_session=; Path=/; HttpOnly; Max-Age=0`
+        }
+      }
+    )
+  } catch (error) {
+    console.error('Logout error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

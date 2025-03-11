@@ -8,10 +8,13 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  username      String    @unique
+  password      String
+  sessionToken  String?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  websites      Website[]
 }
 
 model Category {
@@ -49,7 +52,10 @@ model Website {
   loginInfo       Json?
   lastHealthCheck DateTime?
   notes           String?
+  userId         String
   createdAt       DateTime    @default(now())
+
+  User User @relation(fields: [userId], references: [id])
 }
 
 model Payment {
