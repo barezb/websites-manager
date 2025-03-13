@@ -1,7 +1,7 @@
 // File: src/app/api/invoices/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient, PaymentStatus } from '@prisma/client'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth } from '@/lib/authcopy'
 import { generateInvoice } from '@/lib/invoice-generatos'
 
 const prisma = new PrismaClient()

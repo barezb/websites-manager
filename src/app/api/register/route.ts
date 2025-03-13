@@ -1,6 +1,6 @@
 // File: src/app/api/register/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { registerUser, loginUser, setSessionCookie } from '@/lib/auth'
+import { registerUser, loginUser, setSessionCookie } from '@/lib/authcopy'
 
 export async function POST(request: NextRequest) {
   try {

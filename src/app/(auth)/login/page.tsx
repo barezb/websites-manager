@@ -1,9 +1,11 @@
+/* eslint-disable react/no-unescaped-entities */
 // File: src/app/(auth)/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signInUser } from "@/lib/authActions";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -11,30 +13,31 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
+  if (password.length < 6) {
+    setError("Password must be at least 6 characters long")
+  }
+  if (username.length < 3) {
+    setError("Username must be at least 3 characters long")
+  }
+  const data = { username, password };
+
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const res = await signInUser(data);
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (res.status === 'success') {
         router.push("/dashboard");
       } else {
-        setError(data.error || "Login failed");
+        setError("Login failed");
       }
     } catch (err) {
+      console.log(err);
       setError("Network error. Please try again.");
     }
-  };
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

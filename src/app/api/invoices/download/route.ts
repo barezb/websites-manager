@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth } from '@/lib/authcopy'
 
 export async function GET(request: NextRequest) {
     try {

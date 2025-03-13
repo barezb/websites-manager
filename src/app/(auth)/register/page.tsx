@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerUser } from "@/lib/auth";
+import { registerUser } from "@/lib/authActions";
+import { RegisterSchema } from "@/lib/types";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -15,9 +17,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    // Basic validation
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters long");
       return;
     }
 
@@ -25,9 +26,15 @@ export default function RegisterPage() {
       setError("Password must be at least 6 characters long");
       return;
     }
+    const data:RegisterSchema = {
+      username,
+      password,
+      name,
+      email,
+    };
 
     try {
-      await registerUser(username, password);
+      await registerUser(data);
       router.push("/login");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
@@ -46,8 +53,23 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
-              htmlFor="username"
+              htmlFor="name"
               className="block text-gray-700 font-bold mb-2"
+            >
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+              required
+              minLength={3}
+            />
+            <label
+              htmlFor="username"
+              className="mt-4 block text-gray-700 font-bold mb-2"
             >
               Username
             </label>
@@ -59,6 +81,20 @@ export default function RegisterPage() {
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
               required
               minLength={3}
+            />
+            <label
+              htmlFor="username"
+              className="mt-4 block text-gray-700 font-bold mb-2"
+            >
+              Email
+            </label>
+            <input
+              type="text"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
+              required
             />
           </div>
           <div className="mb-4">
@@ -78,23 +114,7 @@ export default function RegisterPage() {
               minLength={6}
             />
           </div>
-          <div className="mb-6">
-            <label
-              htmlFor="confirm-password"
-              className="block text-gray-700 font-bold mb-2"
-            >
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirm-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
-              minLength={6}
-            />
-          </div>
+          <div className="mb-6"></div>
           <button
             type="submit"
             className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-300"

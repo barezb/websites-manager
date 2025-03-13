@@ -1,60 +1,27 @@
-// File: src/middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
-
-const protectedRoutes = [
-    '/dashboard',
-    '/dashboard/websites',
-    '/dashboard/clients',
-    '/dashboard/categories'
-]
-
-const authRoutes = ['/login', '/register']
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/pirsma';
+import { auth } from './auth';
 
 export async function middleware(request: NextRequest) {
-    const path = request.nextUrl.pathname
-    const session = request.cookies.get('user_session')?.value
+  const session = await auth();
 
-    // Check if the route is protected
-    const isProtectedRoute = protectedRoutes.some(route =>
-        path.startsWith(route)
-    )
+  if (!session) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
-    // Check if the route is an auth route
-    const isAuthRoute = authRoutes.includes(path)
+  // Example of using Prisma client
+  const username = session.user?.username;
+  if (!username) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
-    // If no session and trying to access protected route, redirect to login
-    if (isProtectedRoute && !session) {
-        return NextResponse.redirect(new URL('/login', request.url))
-    }
+  const user = await prisma.user.findUnique({
+    where: { username },
+  });
 
-    // If session exists and trying to access auth routes, redirect to dashboard
-    if (isAuthRoute && session) {
-        // Optional: Verify the session is valid
-        try {
-            const user = await prisma.user.findUnique({
-                where: { id: session }
-            })
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
-            if (user) {
-                return NextResponse.redirect(new URL('/dashboard', request.url))
-            }
-        } catch (error) {
-            console.error('Session validation error:', error)
-        }
-    }
-
-    return NextResponse.next()
-}
-
-// See "Matching Paths" below to learn more
-export const config = {
-    matcher: [
-        '/dashboard/:path*',
-        '/login',
-        '/register'
-    ]
+  return NextResponse.next();
 }
